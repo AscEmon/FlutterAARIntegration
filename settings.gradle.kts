@@ -47,7 +47,7 @@ dependencyResolutionManagement {
         mavenCentral()
         // Add a local Maven repository where your AAR files are stored
         maven {
-            url = uri("/Users/emon/Documents/flutterProject/personal/merchant_sdk/build/host/outputs/repo")
+            url = uri("/Users/emon/Documents/TestAARIntegration/app/libs/repo")
         }
         maven {
             url = uri("https://storage.googleapis.com/download.flutter.io") // Use https URL for Flutter repo
