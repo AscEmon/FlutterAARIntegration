@@ -1,5 +1,3 @@
-
-
 package com.example.testaar
 
 import android.os.Bundle
@@ -15,27 +13,46 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.testaar.ui.theme.TestAARIntegrationTheme
 import io.flutter.embedding.android.FlutterActivity
+import io.flutter.plugin.common.MethodChannel
+import io.flutter.embedding.engine.FlutterEngine
+import android.util.Log
+import io.flutter.embedding.engine.dart.DartExecutor
 
 class MainActivity : ComponentActivity() {
+
+    private val CHANNEL = "com.example.testaar/native"
+    private var flutterEngine: FlutterEngine? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Initialize the Flutter engine
+        flutterEngine = FlutterEngine(this).apply {
+            // Start Flutter engine and set up method channel
+            dartExecutor.executeDartEntrypoint(
+                DartExecutor.DartEntrypoint.createDefault()
+            )
+        }
+
+        // Setup the content and UI
         setContent {
-            TestAARIntegrationTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    MainContent(
-                        modifier = Modifier.padding(innerPadding),
-                        onFlutterClick = { openFlutterModule() }
-                    )
-                }
-            }
+            MainContent(onFlutterClick = { openFlutterModule() })
         }
     }
 
-    // Function to open the Flutter module
     private fun openFlutterModule() {
-        startActivity(
-            FlutterActivity.createDefaultIntent(this)
-        )
+        // Start FlutterActivity after initializing FlutterEngine
+        val intent = FlutterActivity.createDefaultIntent(this)
+        startActivity(intent)
+
+        // Ensure method channel is set up before sending data
+        flutterEngine?.let { engine ->
+            val channel = MethodChannel(engine.dartExecutor, CHANNEL)
+
+            channel.invokeMethod("sendData", "Hello from Native Android!") // Send data to Flutter
+            Log.d("MainActivity", "Sending data to Flutter: Hello from Native Android!")
+
+        }
     }
 }
 
@@ -48,13 +65,5 @@ fun MainContent(modifier: Modifier = Modifier, onFlutterClick: () -> Unit) {
         Button(onClick = { onFlutterClick() }) {
             Text(text = "Open Flutter Module")
         }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun PreviewMainContent() {
-    TestAARIntegrationTheme {
-        MainContent(onFlutterClick = {})
     }
 }
